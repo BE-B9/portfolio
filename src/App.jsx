@@ -67,6 +67,253 @@ const MagneticButton = ({ children, className = '', variant = 'primary', href })
 // SECTIONS
 // ==========================================
 
+const TelemetryTypewriter = () => {
+    const [lines, setLines] = useState([]);
+    const [currentLine, setCurrentLine] = useState('');
+    const [lineIndex, setLineIndex] = useState(0);
+
+    // Memoize the messages array so it doesn't cause infinite re-renders
+    const messages = React.useMemo(() => [
+        "> INCOMING CONNECTION: GMAIL API...",
+        "> AUTHENTICATING...",
+        "> SUCCESS. READING UNREAD THREADS: 4",
+        "> THREAD 1: BOOKING INQUIRY DETECTED.",
+        "> PARSING DATES: 2026-05-14 TO 2026-05-15.",
+        "> PARSING VENUE: THE TRUMAN, KC.",
+        "> PARSING OFFER: $5,000 USD GUARANTEE.",
+        "> CHECKING AVAILABILITY... [CLEAR]",
+        "> INCOMING CONNECTION: G-CALENDAR API...",
+        "> DRAFTING EVENT: HOLD - THE TRUMAN.",
+        "> CALCULATING AGENT COMMISSION (10%): $500.",
+        "> LOGGING TO DATABASE...",
+        "> TRANSACTION COMPLETE. AWAITING NEW EVENTS..."
+    ], []);
+
+    useEffect(() => {
+        if (lineIndex >= messages.length) {
+            const timeout = setTimeout(() => {
+                setLines([]);
+                setCurrentLine('');
+                setLineIndex(0);
+            }, 1500); // Wait 1.5 seconds before looping
+            return () => clearTimeout(timeout);
+        }
+
+        const fullText = messages[lineIndex];
+
+        if (currentLine.length < fullText.length) {
+            const timeout = setTimeout(() => {
+                setCurrentLine(fullText.slice(0, currentLine.length + 1));
+            }, Math.random() * 25 + 15); // Fast typing
+            return () => clearTimeout(timeout);
+        } else {
+            const timeout = setTimeout(() => {
+                setLines(prev => [...prev, fullText]);
+                setCurrentLine('');
+                setLineIndex(prev => prev + 1);
+            }, 400); // Pause between lines
+            return () => clearTimeout(timeout);
+        }
+    }, [currentLine, lineIndex, messages]);
+
+    return (
+        <div className="absolute inset-0 bg-[#050508] z-10 p-6 md:p-8 font-mono text-xs md:text-sm text-accent overflow-hidden rounded-[2rem] border border-white/5 flex flex-col">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-accent/20 opacity-90 relative z-20 shrink-0">
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+                <div className="tracking-widest uppercase font-bold text-[10px] md:text-xs">Status: Active</div>
+            </div>
+
+            <div className="flex-1 overflow-visible flex flex-col justify-end mask-image-bottom relative z-10">
+                <div className="space-y-3 pb-2 opacity-90">
+                    {lines.map((line, i) => (
+                        <div key={i}>{line}</div>
+                    ))}
+                    {lineIndex < messages.length && (
+                        <div className="flex items-center">
+                            <span>{currentLine}</span>
+                            <span className="w-1.5 h-3.5 bg-accent ml-1 animate-[pulse_0.7s_infinite]"></span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const DiagnosticShuffler = () => {
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        let ctx = gsap.context(() => {
+            const cards = gsap.utils.toArray('.shuffler-card');
+
+            // Initial positions
+            gsap.set(cards, {
+                y: i => i * 20,
+                scale: i => 1 - (i * 0.05),
+                opacity: i => 1 - (i * 0.2),
+                zIndex: i => cards.length - i
+            });
+
+            // Cycle function
+            const cycle = () => {
+                const firstCard = cards.shift();
+                cards.push(firstCard);
+
+                cards.forEach((card, i) => {
+                    gsap.to(card, {
+                        y: i * 20,
+                        scale: 1 - (i * 0.05),
+                        opacity: 1 - (i * 0.2),
+                        zIndex: cards.length - i,
+                        duration: 0.8,
+                        ease: "back.out(1.2)"
+                    });
+                });
+            };
+
+            const interval = setInterval(cycle, 2500);
+            return () => clearInterval(interval);
+        }, containerRef);
+        return () => ctx.revert();
+    }, []);
+
+    return (
+        <div ref={containerRef} className="absolute inset-0 bg-[#050508] z-10 flex items-center justify-center overflow-hidden rounded-[2rem] border border-white/5">
+            <div className="relative w-full max-w-[280px] h-[200px] mt-12 mx-auto">
+                <div className="shuffler-card absolute top-0 left-0 right-0 mx-auto w-[90%] bg-dark border border-white/10 rounded-2xl p-4 shadow-xl flex flex-col justify-between h-[120px]">
+                    <div className="font-mono text-[10px] text-white/50 border-b border-white/10 pb-2 mb-2">TARGET: ORDER 100,000</div>
+                    <div className="font-sans text-sm font-bold text-white">Extracting Line Items</div>
+                    <div className="font-mono text-accent text-xs mt-2">Processing...</div>
+                </div>
+                <div className="shuffler-card absolute top-0 left-0 right-0 mx-auto w-[90%] bg-dark border border-accent/40 rounded-2xl p-4 shadow-xl flex flex-col justify-between h-[120px]">
+                    <div className="font-mono text-[10px] text-accent/60 border-b border-accent/20 pb-2 mb-2">CROSS-REF: 3PL INVOICE</div>
+                    <div className="font-sans text-sm font-bold text-white">Checking Freight Costs</div>
+                    <div className="font-mono text-accent text-xs mt-2">Analyzing Rates...</div>
+                </div>
+                <div className="shuffler-card absolute top-0 left-0 right-0 mx-auto w-[90%] bg-accent text-primary rounded-2xl p-4 shadow-xl flex flex-col justify-between h-[120px]">
+                    <div className="font-mono text-[10px] text-primary/70 border-b border-primary/20 pb-2 mb-2">DISCREPANCY DETECTED</div>
+                    <div className="font-sans text-sm font-bold text-primary">Overcharge Flagged</div>
+                    <div className="font-drama text-xl font-bold mt-1">+$14.50</div>
+                </div>
+            </div>
+            <div className="absolute top-6 left-6 flex items-center gap-3 z-0">
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+                <div className="font-mono text-[10px] text-white/40 uppercase tracking-widest font-bold">Diagnostic Shuffler</div>
+            </div>
+        </div>
+    );
+};
+
+const CursorScheduler = () => {
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        let ctx = gsap.context(() => {
+            const tl = gsap.timeline({ repeat: -1 });
+
+            // Reset cursor
+            gsap.set('.cursor-svg', { x: 200, y: 150, opacity: 0 });
+            gsap.set('.sync-btn', { scale: 1, backgroundColor: 'transparent', color: '#C9A84C' }); // assuming accent is roughly this color, using tailwind classes instead where possible
+            gsap.set('.data-row', { width: "0%" });
+
+            tl.to('.cursor-svg', { opacity: 1, duration: 0.3 })
+                .to('.cursor-svg', { x: 185, y: 28, duration: 1, ease: 'power2.inOut' })
+                .to('.cursor-svg', { scale: 0.8, duration: 0.1, yoyo: true, repeat: 1 })
+                .to('.sync-btn', { backgroundColor: '#C9A84C', color: '#050508', duration: 0.2 }, "-=0.2") // Note: The color logic works best if we toggle classes but inline is fine
+                .to('.data-row', { width: "100%", duration: 1.5, stagger: 0.2, ease: 'power2.out' })
+                .to('.cursor-svg', { x: 200, y: 150, duration: 1, ease: 'power2.in' })
+                .to('.cursor-svg', { opacity: 0, duration: 0.3 })
+                .to('.sync-btn', { backgroundColor: 'transparent', color: '#C9A84C', duration: 0.3 }, "+=1");
+
+        }, containerRef);
+        return () => ctx.revert();
+    }, []);
+
+    return (
+        <div ref={containerRef} className="absolute inset-0 bg-[#050508] z-10 flex flex-col justify-center items-center overflow-hidden rounded-[2rem] border border-white/5 p-8 text-accent">
+            <div className="w-full max-w-[260px] bg-dark border border-white/10 rounded-[1.5rem] p-5 relative shadow-2xl overflow-hidden mt-6">
+                <div className="flex justify-between items-center mb-6 relative z-10">
+                    <div className="font-sans font-bold text-sm text-white">Job Costing</div>
+                    <div className="sync-btn font-mono text-[9px] border border-accent/50 rounded-full px-2 py-1 uppercase tracking-wider transition-colors inline-block text-center" style={{ color: '#C9A84C' }}>Sync ADP</div>
+                </div>
+
+                <div className="space-y-4 relative z-10">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="w-full bg-white/5 h-6 rounded-md overflow-hidden flex items-center px-2">
+                            <div className="data-row h-1.5 bg-accent rounded-full" style={{ width: '0%' }}></div>
+                        </div>
+                    ))}
+                </div>
+
+                <svg className="cursor-svg absolute top-0 left-0 w-6 h-6 text-white drop-shadow-md z-20" viewBox="0 0 24 24" fill="currentColor" stroke="black" strokeWidth="1">
+                    <path d="M4 2l16 11-6.5 2 4.5 7.5-3.5 1.5-4.5-7.5-4.5 4z" />
+                </svg>
+            </div>
+
+            <div className="absolute top-6 left-6 flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-white/40"></div>
+                <div className="font-mono text-[10px] text-white/40 uppercase tracking-widest font-bold">Costing Dashboard Sync</div>
+            </div>
+        </div>
+    );
+};
+
+const RpaExtractor = () => {
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        let ctx = gsap.context(() => {
+            const tl = gsap.timeline({ repeat: -1 });
+
+            gsap.set('.rpa-folder', { opacity: 0.3, x: -10 });
+            gsap.set('.rpa-file', { opacity: 0, height: 0, marginTop: 0 });
+            // Using a simple state-like approach with text manipulation via GSAP might be tricky, instead we fade text blocks
+            gsap.set('.rpa-msg-1', { display: 'inline', opacity: 1 });
+            gsap.set('.rpa-msg-2, .rpa-msg-3', { display: 'none', opacity: 0 });
+
+            tl.to('.rpa-folder', { opacity: 1, x: 0, duration: 0.4, stagger: 0.3, ease: 'power2.out' })
+                .to('.rpa-msg-1', { display: 'none', opacity: 0, duration: 0 })
+                .to('.rpa-msg-2', { display: 'inline', opacity: 1, duration: 0 })
+                .to('.rpa-file', { opacity: 1, height: 'auto', marginTop: 8, duration: 0.3, stagger: 0.1, ease: 'power2.out' }, "+=0.3")
+                .to('.rpa-folder-icon', { color: '#C9A84C', duration: 0.3, stagger: 0.1 }, "-=0.5")
+                .to('.rpa-msg-2', { display: 'none', opacity: 0, duration: 0 }, "+=0.5")
+                .to('.rpa-msg-3', { display: 'inline', opacity: 1, duration: 0 })
+                .to({}, { duration: 2 }) // pause
+                .to('.rpa-folder, .rpa-file', { opacity: 0, duration: 0.4 })
+                .to('.rpa-folder-icon', { color: 'rgba(255,255,255,0.4)', duration: 0 })
+                .to('.rpa-msg-3', { display: 'none', opacity: 0, duration: 0 });
+
+        }, containerRef);
+        return () => ctx.revert();
+    }, []);
+
+    return (
+        <div ref={containerRef} className="absolute inset-0 bg-[#050508] z-10 flex flex-col overflow-hidden rounded-[2rem] border border-white/5 p-6 md:p-8">
+            <div className="font-mono text-[10px] md:text-xs text-accent mb-6 uppercase tracking-widest border-b border-accent/20 pb-4 flex items-center gap-3">
+                <span className="animate-pulse w-2 h-2 rounded-full bg-accent inline-block"></span>
+                <span className="rpa-msg-1">Connecting to Remote Desktop...</span>
+                <span className="rpa-msg-2">Target locked. Extracting files...</span>
+                <span className="rpa-msg-3">Extraction complete. Hierarchy preserved.</span>
+            </div>
+
+            <div className="flex-1 font-mono text-xs md:text-sm space-y-4 pt-2 overflow-hidden flex flex-col justify-center">
+                {[1, 2, 3].map(f => (
+                    <div key={f} className="rpa-folder text-white/80 border border-white/5 bg-white/5 p-3 rounded-xl max-w-[280px]">
+                        <div className="flex items-center gap-3 font-semibold">
+                            <svg className="rpa-folder-icon w-5 h-5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                            Client_00{f}_Tax_Docs
+                        </div>
+                        <div className="rpa-file pl-8 text-white/50 overflow-hidden flex items-center gap-2 pt-2">
+                            <span className="text-accent">↳</span> form_1040_extracted.pdf
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 function Navbar() {
     const navRef = useRef(null);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -134,6 +381,22 @@ function Hero() {
                     repeatRefresh: true
                 });
             });
+
+            gsap.to(".hero-motif-1", {
+                rotation: 360,
+                duration: 60,
+                repeat: -1,
+                ease: "none",
+                transformOrigin: "center center"
+            });
+
+            gsap.to(".hero-motif-2", {
+                rotation: -360,
+                duration: 90,
+                repeat: -1,
+                ease: "none",
+                transformOrigin: "center center"
+            });
         }, container);
         return () => ctx.revert();
     }, []);
@@ -152,6 +415,29 @@ function Hero() {
 
                 {/* Heavy Primary to Transparent gradient overlay for bottom fade */}
                 <div className="absolute inset-0 z-20 bg-gradient-to-t from-primary via-primary/80 to-transparent pointer-events-none"></div>
+            </div>
+
+            {/* Rotating Geometric Motif */}
+            <div className="absolute top-[35%] md:top-[45%] right-[-30%] md:right-[-10%] lg:right-[5%] -translate-y-1/2 w-[110vw] h-[110vw] max-w-[800px] max-h-[800px] md:w-[60vw] md:h-[60vw] opacity-20 md:opacity-30 pointer-events-none z-10 text-accent">
+                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+                    <g className="hero-motif-1">
+                        <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="0.2" strokeDasharray="1 3" />
+                        <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" strokeWidth="0.2" strokeDasharray="4 2" />
+                        <circle cx="50" cy="50" r="8" fill="none" stroke="currentColor" strokeWidth="0.3" />
+                        <line x1="50" y1="2" x2="50" y2="8" stroke="currentColor" strokeWidth="0.5" />
+                        <line x1="50" y1="92" x2="50" y2="98" stroke="currentColor" strokeWidth="0.5" />
+                        <line x1="2" y1="50" x2="8" y2="50" stroke="currentColor" strokeWidth="0.5" />
+                        <line x1="92" y1="50" x2="98" y2="50" stroke="currentColor" strokeWidth="0.5" />
+                    </g>
+                    <g className="hero-motif-2">
+                        <circle cx="50" cy="50" r="38" fill="none" stroke="currentColor" strokeWidth="0.3" />
+                        <circle cx="50" cy="50" r="18" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="8 6" />
+                        <line x1="23" y1="23" x2="27" y2="27" stroke="currentColor" strokeWidth="0.5" />
+                        <line x1="77" y1="77" x2="73" y2="73" stroke="currentColor" strokeWidth="0.5" />
+                        <line x1="23" y1="77" x2="27" y2="73" stroke="currentColor" strokeWidth="0.5" />
+                        <line x1="77" y1="23" x2="73" y2="27" stroke="currentColor" strokeWidth="0.5" />
+                    </g>
+                </svg>
             </div>
 
             <div className="relative z-10 max-w-4xl text-background">
@@ -332,8 +618,10 @@ function SelectedWork() {
                             {/* Image Placeholder container */}
                             <div className="relative w-full aspect-video md:aspect-square lg:aspect-[4/3] rounded-[2rem] overflow-hidden group">
                                 {/* REPLACE SRC WITH PORTFOLIO PIECE */}
-                                <div className="absolute inset-0 bg-black/40 z-10 transition-opacity duration-500 group-hover:opacity-0 mix-blend-multiply"></div>
-                                <img src={proj.image} alt={proj.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale hover:grayscale-0" />
+                                {idx === 0 && <TelemetryTypewriter />}
+                                {idx === 1 && <DiagnosticShuffler />}
+                                {idx === 2 && <CursorScheduler />}
+                                {idx === 3 && <RpaExtractor />}
                             </div>
                         </div>
 
